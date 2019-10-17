@@ -4,12 +4,12 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
+#include <pcl/registration/ndt.h>
+#include <pcl/filters/passthrough.h>
 /* #include <tf/tf.h> */
 /* #include <pcl/common/transforms.h> */
-#include <pcl/registration/ndt.h>
 /* #include <pcl/filters/approximate_voxel_grid.h> */
 /* #include <eigen_conversions/eigen_msg.h> */
-/* #include <pcl/filters/passthrough.h> */
 /* #include <tf/transform_broadcaster.h> */
 #include <pcl/visualization/cloud_viewer.h>
 
@@ -44,10 +44,11 @@ class NDTScanMatching{
 	public:
 		NDTScanMatching();
 		// void InitializePose(geometry_msgs::PoseStamped& pose);
-		void CallbackPC(const sensor_msgs::PointCloud2ConstPtr& msg);
 		void CallbackPose(const geometry_msgs::PoseStampedConstPtr& msg);
+		void CallbackPC(const sensor_msgs::PointCloud2ConstPtr& msg);
 		void InitialRegistration(void);
 		void Transformation(void);
+		void PassThroughFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr pc_in, pcl::PointCloud<pcl::PointXYZ>::Ptr pc_out, std::vector<double> range);
 		void Visualization(void);
 		void Publication(void);
 		Eigen::Quaternionf QuatMsgToEigen(geometry_msgs::Quaternion q_msg);
@@ -78,6 +79,12 @@ NDTScanMatching::NDTScanMatching()
 	std::cout << "max_iterations = " << max_iterations << std::endl;
 }
 
+void NDTScanMatching::CallbackPose(const geometry_msgs::PoseStampedConstPtr& msg)
+{
+	pose_ekf = *msg;
+	first_callback_pose = false;
+}
+
 void NDTScanMatching::CallbackPC(const sensor_msgs::PointCloud2ConstPtr& msg)
 {
 	pcl::fromROSMsg(*msg, *pc_now);
@@ -89,12 +96,6 @@ void NDTScanMatching::CallbackPC(const sensor_msgs::PointCloud2ConstPtr& msg)
 		}
 		Visualization();
 	}
-}
-
-void NDTScanMatching::CallbackPose(const geometry_msgs::PoseStampedConstPtr& msg)
-{
-	pose_ekf = *msg;
-	first_callback_pose = false;
 }
 
 void NDTScanMatching::InitialRegistration(void)
@@ -120,34 +121,38 @@ void NDTScanMatching::Transformation(void)
 {
 	std::cout << "Transformation" << std::endl; 
 
-	/*ndt*/
-	std::cout << "test1" << std::endl; 
+	/*initialize*/
 	pcl::NormalDistributionsTransform<pcl::PointXYZ, pcl::PointXYZ> ndt;
+	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_map_filtered (new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_now_filtered (new pcl::PointCloud<pcl::PointXYZ>);
+	/*filtering*/
+	PassThroughFilter(pc_map, pc_map_filtered, std::vector<double>{-pc_range, pc_range, -pc_range, pc_range});
+	PassThroughFilter(pc_now, pc_now_filtered, std::vector<double>{-pc_range, pc_range, -pc_range, pc_range});
 	/*set parameters*/
-	std::cout << "test2" << std::endl; 
 	ndt.setTransformationEpsilon(trans_epsilon);
 	ndt.setStepSize(stepsize);
 	ndt.setResolution(resolution);
 	ndt.setMaximumIterations(max_iterations);
 	/*set cloud*/
-	std::cout << "test3" << std::endl; 
-	ndt.setInputSource(pc_now);
-	ndt.setInputTarget(pc_map);
+	ndt.setInputSource(pc_now_filtered);
+	ndt.setInputTarget(pc_map_filtered);
+	std::cout << "pc_now_filtered->points.size() = " << pc_now_filtered->points.size() << std::endl;
+	std::cout << "pc_map_filtered->points.size() = " << pc_map_filtered->points.size() << std::endl;
 	/*initial guess*/
-	std::cout << "test4" << std::endl; 
 	Eigen::Translation3f init_translation(
-		pose_ekf.pose.position.x,
-		pose_ekf.pose.position.y,
-		pose_ekf.pose.position.z
+		(float)pose_ekf.pose.position.x,
+		(float)pose_ekf.pose.position.y,
+		(float)pose_ekf.pose.position.z
 	);
-	std::cout << "test5" << std::endl; 
 	Eigen::AngleAxisf init_rotation(
 		QuatMsgToEigen(pose_ekf.pose.orientation)
 	);
-	std::cout << "test6" << std::endl; 
+	std::cout << "init_translation = (" << init_translation.x() << ", " << init_translation.y() << ", " << init_translation.z() << ")" << std::endl; 
+	std::cout << "init_rotation = " << std::endl << init_rotation.axis() << std::endl; 
 	Eigen::Matrix4f init_guess = (init_translation*init_rotation).matrix();
+	std::cout << "init_guess = " << std::endl << init_guess << std::endl; 
 	/*align*/
-	std::cout << "align ..."; 
+	std::cout << "aligning ..." << std::endl; 
 	ndt.align(*pc_trans, init_guess);
 	std::cout << "DONE" << std::endl; 
 	/*print*/
@@ -168,6 +173,19 @@ void NDTScanMatching::Transformation(void)
 	*pc_map += *pc_trans;
 }
 
+void NDTScanMatching::PassThroughFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr pc_in, pcl::PointCloud<pcl::PointXYZ>::Ptr pc_out, std::vector<double> range)
+{
+	pcl::PassThrough<pcl::PointXYZ> pass;
+	pass.setInputCloud(pc_in);
+	pass.setFilterFieldName("x");
+	pass.setFilterLimits(range[0], range[1]);
+	pass.filter(*pc_out);
+	pass.setInputCloud(pc_out);
+	pass.setFilterFieldName("y");
+	pass.setFilterLimits(range[2], range[3]);
+	pass.filter(*pc_out);
+}
+
 void NDTScanMatching::Visualization(void)
 {
 	viewer.removeAllPointClouds();
@@ -179,6 +197,8 @@ void NDTScanMatching::Visualization(void)
 	viewer.addPointCloud<pcl::PointXYZ>(pc_map, "pc_map");
 	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, 0.0, 1.0, 0.0, "pc_map");
 	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1.0, "pc_map");
+
+	viewer.spinOnce();
 }
 
 void NDTScanMatching::Publication(void)

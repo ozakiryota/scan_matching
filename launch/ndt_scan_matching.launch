@@ -12,6 +12,7 @@
 
 	<!-- sensor driver -->
 	<include file="$(find velodyne_pointcloud)/launch/32e_points.launch"/>
+
 	<!-- semi sensor driver -->
 	<node pkg="msg_conversion" name="odometry_yaw_to_quaternion" type="odometry_yaw_to_quaternion"/>
 	<node pkg="msg_conversion" name="odometry_to_posestamped" type="odometry_to_posestamped">
@@ -21,11 +22,11 @@
 	<!-- main -->
 	<node pkg="scan_matching" name="ndt_scan_matching" type="ndt_scan_matching" output="screen">
 		<remap from="/ekf/pose" to="/pose/from_odom"/>
-		<param name="pc_range" type="double" value="7.0"/>
+		<param name="pc_range" type="double" value="1.0"/>
 		<param name="leafsize" value="0.01f"/>
-		<param name="trans_epsilon" type="double" value="1e-6"/>
+		<param name="trans_epsilon" type="double" value="1e-3"/>
 		<param name="stepsize" type="double" value="0.1"/>
-		<param name="resolution" type="double" value="0.1"/>
+		<param name="resolution" type="double" value="0.5"/>
 		<param name="max_iterations" type="int" value="50"/>
 	</node>
 </launch>
