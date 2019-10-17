@@ -22,11 +22,11 @@
 	<!-- main -->
 	<node pkg="scan_matching" name="ndt_scan_matching" type="ndt_scan_matching" output="screen">
 		<remap from="/ekf/pose" to="/pose/from_odom"/>
-		<param name="pc_range" type="double" value="7.0"/>
-		<param name="leafsize" value="0.1f"/>
+		<param name="pc_range" type="double" value="10.0"/>
+		<param name="leafsize" type="double" value="0.2"/>
 		<param name="trans_epsilon" type="double" value="1e-3"/>
 		<param name="stepsize" type="double" value="0.1"/>
-		<param name="resolution" type="double" value="0.5"/>
-		<param name="max_iterations" type="int" value="50"/>
+		<param name="resolution" type="double" value="0.3"/>
+		<param name="max_iterations" type="int" value="30"/>
 	</node>
 </launch>
