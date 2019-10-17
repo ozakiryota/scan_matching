@@ -6,9 +6,9 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/registration/ndt.h>
 #include <pcl/filters/passthrough.h>
+#include <pcl/filters/approximate_voxel_grid.h>
 /* #include <tf/tf.h> */
 /* #include <pcl/common/transforms.h> */
-/* #include <pcl/filters/approximate_voxel_grid.h> */
 /* #include <eigen_conversions/eigen_msg.h> */
 /* #include <tf/transform_broadcaster.h> */
 #include <pcl/visualization/cloud_viewer.h>
@@ -49,6 +49,7 @@ class NDTScanMatching{
 		void InitialRegistration(void);
 		void Transformation(void);
 		void PassThroughFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr pc_in, pcl::PointCloud<pcl::PointXYZ>::Ptr pc_out, std::vector<double> range);
+		void Downsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc);
 		void Visualization(void);
 		void Publication(void);
 		Eigen::Quaternionf QuatMsgToEigen(geometry_msgs::Quaternion q_msg);
@@ -128,6 +129,9 @@ void NDTScanMatching::Transformation(void)
 	/*filtering*/
 	PassThroughFilter(pc_map, pc_map_filtered, std::vector<double>{-pc_range, pc_range, -pc_range, pc_range});
 	PassThroughFilter(pc_now, pc_now_filtered, std::vector<double>{-pc_range, pc_range, -pc_range, pc_range});
+	/*downsampling*/
+	Downsampling(pc_map_filtered);
+	Downsampling(pc_now_filtered);
 	/*set parameters*/
 	ndt.setTransformationEpsilon(trans_epsilon);
 	ndt.setStepSize(stepsize);
@@ -184,6 +188,14 @@ void NDTScanMatching::PassThroughFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr pc_i
 	pass.setFilterFieldName("y");
 	pass.setFilterLimits(range[2], range[3]);
 	pass.filter(*pc_out);
+}
+
+void NDTScanMatching::Downsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc)
+{
+	pcl::ApproximateVoxelGrid<pcl::PointXYZ> avg;
+	avg.setInputCloud(pc);
+	avg.setLeafSize((float)leafsize, (float)leafsize, (float)leafsize);
+	avg.filter(*pc);
 }
 
 void NDTScanMatching::Visualization(void)
