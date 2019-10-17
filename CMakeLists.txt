@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(scan_matching)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
+add_compile_options(-std=c++11 -O2 -g -Wall)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -12,8 +12,10 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   tf
-  PCL REQUIRED
+  sensor_msgs
+  geometry_msgs
 )
+find_package(PCL REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -123,6 +125,14 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
 )
 
+link_directories(
+  ${PCL_LIBRARY_DIRS}
+)
+
+add_definitions(
+  ${PCL_DEFINITIONS}
+)
+
 ## Declare a C++ library
 # add_library(scan_matching
 #   src/${PROJECT_NAME}/scan_matching.cpp
@@ -193,4 +203,4 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 add_executable(ndt_scan_matching src/ndt_scan_matching.cpp)
-target_link_libraries(ndt_scan_matching ${catkin_LIBRARIES})
+target_link_libraries(ndt_scan_matching ${catkin_LIBRARIES} ${PCL_LIBRARIES})
