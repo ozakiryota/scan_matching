@@ -121,7 +121,7 @@ void NDTScanMatching::InitialRegistration(void)
 
 bool NDTScanMatching::Transformation(void)
 {
-	std::cout << "===Transformation===" << std::endl; 
+	std::cout << "=== Transformation ===" << std::endl; 
 
 	double time_start = ros::Time::now().toSec();
 
@@ -145,7 +145,7 @@ bool NDTScanMatching::Transformation(void)
 	PassThroughFilter(pc_map, pc_map_filtered, range_global);
 	PassThroughFilter(pc_now, pc_now_filtered, range_local);
 	/*downsampling*/
-	// Downsampling(pc_map_filtered);
+	Downsampling(pc_map_filtered);
 	Downsampling(pc_now_filtered);
 	std::cout << "downsampling clock [s] = " << ros::Time::now().toSec() - time_start << std::endl;
 	/*drop out*/
