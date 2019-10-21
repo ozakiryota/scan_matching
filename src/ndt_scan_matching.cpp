@@ -51,6 +51,7 @@ class NDTScanMatching{
 		bool Transformation(void);
 		void PassThroughFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr pc_in, pcl::PointCloud<pcl::PointXYZ>::Ptr pc_out, std::vector<double> range);
 		void Downsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc);
+		void ApproximateDownsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc);
 		void Visualization(void);
 		void Publication(void);
 		Eigen::Quaternionf QuatMsgToEigen(geometry_msgs::Quaternion q_msg);
@@ -145,6 +146,7 @@ bool NDTScanMatching::Transformation(void)
 	PassThroughFilter(pc_map, pc_map_filtered, range_global);
 	PassThroughFilter(pc_now, pc_now_filtered, range_local);
 	/*downsampling*/
+	std::cout << "before pc_map_filtered->points.size() = " << pc_map_filtered->points.size() << std::endl;
 	Downsampling(pc_map_filtered);
 	Downsampling(pc_now_filtered);
 	std::cout << "downsampling clock [s] = " << ros::Time::now().toSec() - time_start << std::endl;
@@ -196,7 +198,7 @@ bool NDTScanMatching::Transformation(void)
 	/*register*/
 	// Downsampling(pc_trans);
 	*pc_map += *pc_trans;
-	Downsampling(pc_map);
+	ApproximateDownsampling(pc_map);
 	std::cout << "transformation clock [s] = " << ros::Time::now().toSec() - time_start << std::endl;
 
 	return true;
@@ -216,6 +218,14 @@ void NDTScanMatching::PassThroughFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr pc_i
 }
 
 void NDTScanMatching::Downsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc)
+{
+	pcl::VoxelGrid<pcl::PointXYZ> vg;
+	vg.setInputCloud(pc);
+	vg.setLeafSize((float)leafsize, (float)leafsize, (float)leafsize);
+	vg.filter(*pc);
+}
+
+void NDTScanMatching::ApproximateDownsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc)
 {
 	pcl::ApproximateVoxelGrid<pcl::PointXYZ> avg;
 	avg.setInputCloud(pc);
