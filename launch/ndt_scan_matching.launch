@@ -14,12 +14,18 @@
 	<include file="$(find velodyne_pointcloud)/launch/32e_points.launch"/>
 
 	<!-- semi sensor driver -->
-	<node pkg="msg_conversion" name="odometry_yaw_to_quaternion" type="odometry_yaw_to_quaternion"/>
+	<node pkg="msg_conversion" name="infant_odometry_republish" type="infant_odometry_republish"/>
 	<node pkg="msg_conversion" name="odometry_to_posestamped" type="odometry_to_posestamped">
 		<remap from="/odom" to="/tinypower/odom/republished"/>
 	</node>
+	<node pkg="gyrodometry" name="initial_alignment" type="initial_alignment" output="screen">
+		<param name="initial_orientation_is_0001" type="bool" value="true"/>
+	</node>
 
 	<!-- main -->
+	<node pkg="scan_matching" name="scan_matching_ekf" type="scan_matching_ekf" output="screen">
+		<remap from="/odom" to="/tinypower/odom"/>
+	</node>
 	<node pkg="scan_matching" name="ndt_scan_matching" type="ndt_scan_matching" output="screen">
 		<remap from="/ekf/pose" to="/pose/from_odom"/>
 		<param name="pc_range" type="double" value="10.0"/>
@@ -28,5 +34,10 @@
 		<param name="stepsize" type="double" value="0.1"/>
 		<param name="resolution" type="double" value="0.3"/>
 		<param name="max_iterations" type="int" value="30"/>
+	</node>
+
+	<!-- comparisons -->
+	<node pkg="gyrodometry" name="gyrodometry3d" type="gyrodometry3d">
+		<remap from="/odom" to="/tinypower/odom/republished"/>
 	</node>
 </launch>
