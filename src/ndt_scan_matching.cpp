@@ -148,7 +148,8 @@ bool NDTScanMatching::Transformation(void)
 	/*downsampling*/
 	std::cout << "before pc_map_filtered->points.size() = " << pc_map_filtered->points.size() << std::endl;
 	Downsampling(pc_map_filtered);
-	Downsampling(pc_now_filtered);
+	// Downsampling(pc_now_filtered);
+	ApproximateDownsampling(pc_now_filtered);
 	std::cout << "downsampling clock [s] = " << ros::Time::now().toSec() - time_start << std::endl;
 	/*drop out*/
 	if(pc_now_filtered->points.empty() || pc_map_filtered->points.empty())	return false;
@@ -231,6 +232,8 @@ void NDTScanMatching::ApproximateDownsampling(pcl::PointCloud<pcl::PointXYZ>::Pt
 	avg.setInputCloud(pc);
 	avg.setLeafSize((float)leafsize, (float)leafsize, (float)leafsize);
 	avg.filter(*pc);
+	// avg.applyFilter(*pc);
+	std::cout << "avg.getDownsampleAllData() = " << avg.getDownsampleAllData() << std::endl;
 }
 
 void NDTScanMatching::Visualization(void)
