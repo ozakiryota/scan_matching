@@ -27,17 +27,24 @@
 		<remap from="/odom" to="/tinypower/odom"/>
 	</node>
 	<node pkg="scan_matching" name="ndt_scan_matching" type="ndt_scan_matching" output="screen">
-		<remap from="/ekf/pose" to="/pose/from_odom"/>
+		<!-- <remap from="/ekf/pose" to="/pose/from_odom"/> -->
 		<param name="pc_range" type="double" value="10.0"/>
-		<param name="leafsize" type="double" value="0.2"/>
+		<param name="leafsize" type="double" value="0.3"/>
 		<param name="trans_epsilon" type="double" value="1e-3"/>
 		<param name="stepsize" type="double" value="0.1"/>
-		<param name="resolution" type="double" value="0.3"/>
+		<param name="resolution" type="double" value="0.5"/>
 		<param name="max_iterations" type="int" value="30"/>
 	</node>
 
 	<!-- comparisons -->
 	<node pkg="gyrodometry" name="gyrodometry3d" type="gyrodometry3d">
 		<remap from="/odom" to="/tinypower/odom/republished"/>
+	</node>
+
+	<!-- for visualize trajectory -->
+	<node pkg="msg_conversion" type="posestamped_to_odometry" name="posestamped_to_odometry">
+		<remap from="/pose" to="/ekf/pose"/>
+		<remap from="/odom/from_posestamped" to="/ekf/odom"/>
+		<param name="child_frame_id" type="string" value="/ekf/odom"/>
 	</node>
 </launch>

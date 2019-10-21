@@ -23,6 +23,7 @@ class NDTScanMatching{
 		ros::Subscriber sub_pose;
 		/*publish*/
 		ros::Publisher pub_pose;
+		ros::Publisher pub_pc;
 		/*viewer*/
 		pcl::visualization::PCLVisualizer viewer{"ndt_scan_matching"};
 		/*cloud*/
@@ -47,7 +48,7 @@ class NDTScanMatching{
 		void CallbackPose(const geometry_msgs::PoseStampedConstPtr& msg);
 		void CallbackPC(const sensor_msgs::PointCloud2ConstPtr& msg);
 		void InitialRegistration(void);
-		void Transformation(void);
+		bool Transformation(void);
 		void PassThroughFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr pc_in, pcl::PointCloud<pcl::PointXYZ>::Ptr pc_out, std::vector<double> range);
 		void Downsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc);
 		void Visualization(void);
@@ -62,6 +63,7 @@ NDTScanMatching::NDTScanMatching()
 	sub_pc = nh.subscribe("/velodyne_points", 1, &NDTScanMatching::CallbackPC, this);
 	sub_pose = nh.subscribe("/ekf/pose", 1, &NDTScanMatching::CallbackPose, this);
 	pub_pose = nh.advertise<geometry_msgs::PoseStamped>("/ndt/pose", 1);
+	pub_pc = nh.advertise<sensor_msgs::PointCloud2>("/mapped_points", 1);
 	viewer.setBackgroundColor(1, 1, 1);
 	viewer.addCoordinateSystem(0.5, "axis");
 	viewer.setCameraPosition(0.0, 0.0, 80.0, 0.0, 0.0, 0.0);
@@ -92,8 +94,7 @@ void NDTScanMatching::CallbackPC(const sensor_msgs::PointCloud2ConstPtr& msg)
 	if(!first_callback_pose){
 		if(pc_map->points.empty())	InitialRegistration();
 		else{
-			Transformation();
-			Publication();
+			if(Transformation())	Publication();
 		}
 		Visualization();
 	}
@@ -118,9 +119,9 @@ void NDTScanMatching::InitialRegistration(void)
 	/* std::cout << "pc_map->points.size() = " << pc_map->points.size() << std::endl; */
 }
 
-void NDTScanMatching::Transformation(void)
+bool NDTScanMatching::Transformation(void)
 {
-	std::cout << "Transformation" << std::endl; 
+	std::cout << "===Transformation===" << std::endl; 
 
 	double time_start = ros::Time::now().toSec();
 
@@ -138,8 +139,8 @@ void NDTScanMatching::Transformation(void)
 	std::vector<double> range_global{
 		pose_ekf.pose.position.x - pc_range,
 		pose_ekf.pose.position.x + pc_range,
-		pose_ekf.pose.position.x - pc_range,
-		pose_ekf.pose.position.x + pc_range
+		pose_ekf.pose.position.y - pc_range,
+		pose_ekf.pose.position.y + pc_range
 	};
 	PassThroughFilter(pc_map, pc_map_filtered, range_global);
 	PassThroughFilter(pc_now, pc_now_filtered, range_local);
@@ -147,6 +148,8 @@ void NDTScanMatching::Transformation(void)
 	// Downsampling(pc_map_filtered);
 	Downsampling(pc_now_filtered);
 	std::cout << "downsampling clock [s] = " << ros::Time::now().toSec() - time_start << std::endl;
+	/*drop out*/
+	if(pc_now_filtered->points.empty() || pc_map_filtered->points.empty())	return false;
 	/*set parameters*/
 	ndt.setTransformationEpsilon(trans_epsilon);
 	ndt.setStepSize(stepsize);
@@ -174,6 +177,8 @@ void NDTScanMatching::Transformation(void)
 	ndt.align(*pc_trans, init_guess);
 	std::cout << "DONE" << std::endl; 
 	std::cout << "aligning clock [s] = " << ros::Time::now().toSec() - time_start << std::endl;
+	/*drop out*/
+	if(!ndt.hasConverged())	return false;
 	/*print*/
 	std::cout << "Normal Distributions Transform has converged:" << ndt.hasConverged () 
 		<< std::endl << " score: " << ndt.getFitnessScore () << std::endl;
@@ -193,6 +198,8 @@ void NDTScanMatching::Transformation(void)
 	*pc_map += *pc_trans;
 	Downsampling(pc_map);
 	std::cout << "transformation clock [s] = " << ros::Time::now().toSec() - time_start << std::endl;
+
+	return true;
 }
 
 void NDTScanMatching::PassThroughFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr pc_in, pcl::PointCloud<pcl::PointXYZ>::Ptr pc_out, std::vector<double> range)
@@ -220,9 +227,9 @@ void NDTScanMatching::Visualization(void)
 {
 	viewer.removeAllPointClouds();
 
-	viewer.addPointCloud<pcl::PointXYZ>(pc_now, "pc_now");
-	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, 0.0, 0.0, 1.0, "pc_now");
-	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1.0, "pc_now");
+	/* viewer.addPointCloud<pcl::PointXYZ>(pc_now, "pc_now"); */
+	/* viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, 0.0, 0.0, 1.0, "pc_now"); */
+	/* viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1.0, "pc_now"); */
 
 	viewer.addPointCloud<pcl::PointXYZ>(pc_map, "pc_map");
 	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, 0.0, 1.0, 0.0, "pc_map");
@@ -241,6 +248,12 @@ void NDTScanMatching::Publication(void)
 	pose_ndt.header.stamp = pose_ekf.header.stamp;
 	pose_ndt.header.frame_id = pose_ekf.header.frame_id;
 	pub_pose.publish(pose_ndt);
+	/*pc*/
+	pc_map->header.stamp = pc_now->header.stamp;
+	pc_map->header.frame_id = pose_ekf.header.frame_id;
+	sensor_msgs::PointCloud2 pc_pub;
+	pcl::toROSMsg(*pc_map, pc_pub);
+	pub_pc.publish(pc_pub);	
 }
 
 Eigen::Quaternionf NDTScanMatching::QuatMsgToEigen(geometry_msgs::Quaternion q_msg)

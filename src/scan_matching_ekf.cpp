@@ -48,7 +48,7 @@ class ScanMatchingEKF{
 		void CallbackOdom(const nav_msgs::OdometryConstPtr& msg);
 		void PredictionOdom(nav_msgs::Odometry odom, double dt);
 		void CallbackNDTPose(const geometry_msgs::PoseStampedConstPtr &msg);
-		void UpdateNDTPose(void);
+		void ObservationNDTPose(geometry_msgs::PoseStamped pose);
 		void Publication();
 		geometry_msgs::PoseStamped StateVectorToPoseStamped(void);
 		Eigen::Matrix3d GetRotationXYZMatrix(const Eigen::Vector3d& RPY, bool inverse);
@@ -102,7 +102,6 @@ void ScanMatchingEKF::CallbackIMU(const sensor_msgs::ImuConstPtr& msg)
 	time_imu_last = time_imu_now;
 	if(first_callback_imu)	dt = 0.0;
 	else	PredictionIMU(*msg, dt);
-	
 	
 	Publication();
 
@@ -243,10 +242,40 @@ void ScanMatchingEKF::PredictionOdom(nav_msgs::Odometry odom, double dt)
 
 void ScanMatchingEKF::CallbackNDTPose(const geometry_msgs::PoseStampedConstPtr &msg)
 {
+	time_publish = msg->header.stamp;
+	time_odom_now = msg->header.stamp;
+	
+	ObservationNDTPose(*msg);
+	
+	Publication();
+
+	first_callback_odom = false;
 }
 
-void ScanMatchingEKF::UpdateNDTPose(void)
+void ScanMatchingEKF::ObservationNDTPose(geometry_msgs::PoseStamped pose)
 {
+	double r_, p_, y_;
+	tf::Quaternion q_orientation;
+	quaternionMsgToTF(pose.pose.orientation, q_orientation);
+
+	tf::Matrix3x3(q_orientation).getRPY(r_, p_, y_);
+	Eigen::VectorXd Z(6);
+	Z <<	pose.pose.position.x,
+			pose.pose.position.y,
+			pose.pose.position.z,
+			r_,
+			p_,
+			y_;
+	Eigen::VectorXd Zp = X;
+	Eigen::MatrixXd jH = Eigen::MatrixXd::Identity(Z.size(), X.size());
+	Eigen::VectorXd Y = Z - Zp;
+	Eigen::MatrixXd R = sigma_ndt*Eigen::MatrixXd::Identity(Z.size(), Z.size());
+	Eigen::MatrixXd S = jH*P*jH.transpose() + R;
+	Eigen::MatrixXd K = P*jH.transpose()*S.inverse();
+	X = X + K*Y;
+	for(int i=3;i<6;i++)	X(i) = PiToPi(X(i));
+	Eigen::MatrixXd I = Eigen::MatrixXd::Identity(X.size(), X.size());
+	P = (I - K*jH)*P;
 }
 
 void ScanMatchingEKF::Publication(void)
