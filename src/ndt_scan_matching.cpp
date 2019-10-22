@@ -39,7 +39,8 @@ class NDTScanMatching{
 		bool first_callback_pose = true;
 		/*parameters*/
 		double pc_range;
-		double leafsize;
+		double leafsize_source;
+		double leafsize_target;
 		double trans_epsilon;
 		double stepsize;
 		double resolution;
@@ -52,8 +53,8 @@ class NDTScanMatching{
 		void InitialRegistration(void);
 		bool Transformation(void);
 		void PassThroughFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr pc_in, pcl::PointCloud<pcl::PointXYZ>::Ptr pc_out, std::vector<double> range);
-		void Downsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc);
-		void ApproximateDownsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc);
+		void Downsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc, double leafsize);
+		void ApproximateDownsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc, double leafsize);
 		void Visualization(void);
 		void Publication(void);
 		Eigen::Quaternionf QuatMsgToEigen(geometry_msgs::Quaternion q_msg);
@@ -73,8 +74,10 @@ NDTScanMatching::NDTScanMatching()
 
 	nhPrivate.param("pc_range", pc_range, 100.0);
 	std::cout << "pc_range = " << pc_range << std::endl;
-	nhPrivate.param("leafsize", leafsize, 0.1);
-	std::cout << "leafsize = " << leafsize << std::endl;
+	nhPrivate.param("leafsize_source", leafsize_source, 0.1);
+	std::cout << "leafsize_source = " << leafsize_source << std::endl;
+	nhPrivate.param("leafsize_target", leafsize_target, 0.1);
+	std::cout << "leafsize_target = " << leafsize_target << std::endl;
 	nhPrivate.param("trans_epsilon", trans_epsilon, 1.0e-8);
 	std::cout << "trans_epsilon = " << trans_epsilon << std::endl;
 	nhPrivate.param("stepsize", stepsize, 0.1);
@@ -149,8 +152,8 @@ bool NDTScanMatching::Transformation(void)
 	PassThroughFilter(pc_now, pc_now_filtered, range_local);
 	/*downsampling*/
 	std::cout << "before: pc_map_filtered->points.size() = " << pc_map_filtered->points.size() << std::endl;
-	ApproximateDownsampling(pc_map_filtered);
-	ApproximateDownsampling(pc_now_filtered);
+	ApproximateDownsampling(pc_map_filtered, leafsize_target);
+	ApproximateDownsampling(pc_now_filtered, leafsize_source);
 	std::cout << "downsampling clock [s] = " << ros::Time::now().toSec() - time_start << std::endl;
 	/*drop out*/
 	if(pc_now_filtered->points.empty() || pc_map_filtered->points.empty())	return false;
@@ -200,7 +203,7 @@ bool NDTScanMatching::Transformation(void)
 	/*register*/
 	*pc_map += *pc_trans;
 	std::cout << "before: pc_map->points.size() = " << pc_map->points.size() << std::endl;
-	ApproximateDownsampling(pc_map);
+	ApproximateDownsampling(pc_map, leafsize_target);
 	std::cout << "after: pc_map->points.size() = " << pc_map->points.size() << std::endl;
 	std::cout << "transformation clock [s] = " << ros::Time::now().toSec() - time_start << std::endl;
 
@@ -220,7 +223,7 @@ void NDTScanMatching::PassThroughFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr pc_i
 	pass.filter(*pc_out);
 }
 
-void NDTScanMatching::Downsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc)
+void NDTScanMatching::Downsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc, double leafsize)
 {
 	pcl::VoxelGrid<pcl::PointXYZ> vg;
 	vg.setInputCloud(pc);
@@ -228,7 +231,7 @@ void NDTScanMatching::Downsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc)
 	vg.filter(*pc);
 }
 
-void NDTScanMatching::ApproximateDownsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc)
+void NDTScanMatching::ApproximateDownsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc, double leafsize)
 {
 	pcl::ApproximateVoxelGrid<pcl::PointXYZ> avg;
 	avg.setInputCloud(pc);
@@ -252,7 +255,7 @@ void NDTScanMatching::Visualization(void)
 
 	viewer.addPointCloud<pcl::PointXYZ>(pc_trans, "pc_trans");
 	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, 1.0, 0.0, 0.0, "pc_trans");
-	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2.0, "pc_trans");
+	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3.0, "pc_trans");
 
 	viewer.addPointCloud<pcl::PointXYZ>(pc_map_filtered, "pc_map_filtered");
 	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, 0.0, 0.0, 1.0, "pc_map_filtered");
