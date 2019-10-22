@@ -30,6 +30,8 @@ class NDTScanMatching{
 		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_now {new pcl::PointCloud<pcl::PointXYZ>};
 		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_map {new pcl::PointCloud<pcl::PointXYZ>};
 		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_trans {new pcl::PointCloud<pcl::PointXYZ>};
+		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_map_filtered {new pcl::PointCloud<pcl::PointXYZ>};
+		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_now_filtered {new pcl::PointCloud<pcl::PointXYZ>};
 		/*pose*/
 		geometry_msgs::PoseStamped pose_ekf;
 		geometry_msgs::PoseStamped pose_ndt;
@@ -128,8 +130,8 @@ bool NDTScanMatching::Transformation(void)
 
 	/*initialize*/
 	pcl::NormalDistributionsTransform<pcl::PointXYZ, pcl::PointXYZ> ndt;
-	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_map_filtered (new pcl::PointCloud<pcl::PointXYZ>);
-	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_now_filtered (new pcl::PointCloud<pcl::PointXYZ>);
+	// pcl::PointCloud<pcl::PointXYZ>::Ptr pc_map_filtered (new pcl::PointCloud<pcl::PointXYZ>);
+	// pcl::PointCloud<pcl::PointXYZ>::Ptr pc_now_filtered (new pcl::PointCloud<pcl::PointXYZ>);
 	/*filtering*/
 	std::vector<double> range_local{
 		-pc_range,
@@ -146,9 +148,9 @@ bool NDTScanMatching::Transformation(void)
 	PassThroughFilter(pc_map, pc_map_filtered, range_global);
 	PassThroughFilter(pc_now, pc_now_filtered, range_local);
 	/*downsampling*/
-	std::cout << "before pc_map_filtered->points.size() = " << pc_map_filtered->points.size() << std::endl;
-	Downsampling(pc_map_filtered);
-	Downsampling(pc_now_filtered);
+	std::cout << "before: pc_map_filtered->points.size() = " << pc_map_filtered->points.size() << std::endl;
+	ApproximateDownsampling(pc_map_filtered);
+	ApproximateDownsampling(pc_now_filtered);
 	std::cout << "downsampling clock [s] = " << ros::Time::now().toSec() - time_start << std::endl;
 	/*drop out*/
 	if(pc_now_filtered->points.empty() || pc_map_filtered->points.empty())	return false;
@@ -196,9 +198,10 @@ bool NDTScanMatching::Transformation(void)
 	pose_ndt.pose.position.z = T(2, 3);
 	pose_ndt.pose.orientation = QuatEigenToMsg(q_rot);
 	/*register*/
-	// Downsampling(pc_trans);
 	*pc_map += *pc_trans;
+	std::cout << "before: pc_map->points.size() = " << pc_map->points.size() << std::endl;
 	ApproximateDownsampling(pc_map);
+	std::cout << "after: pc_map->points.size() = " << pc_map->points.size() << std::endl;
 	std::cout << "transformation clock [s] = " << ros::Time::now().toSec() - time_start << std::endl;
 
 	return true;
@@ -250,6 +253,10 @@ void NDTScanMatching::Visualization(void)
 	viewer.addPointCloud<pcl::PointXYZ>(pc_trans, "pc_trans");
 	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, 1.0, 0.0, 0.0, "pc_trans");
 	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2.0, "pc_trans");
+
+	viewer.addPointCloud<pcl::PointXYZ>(pc_map_filtered, "pc_map_filtered");
+	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, 0.0, 0.0, 1.0, "pc_map_filtered");
+	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2.0, "pc_map_filtered");
 
 	viewer.spinOnce();
 }
