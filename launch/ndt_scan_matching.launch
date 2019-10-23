@@ -30,12 +30,12 @@
 		<param name="sigma_ndt" type="double" value="1e-1"/>
 	</node>
 	<node pkg="scan_matching" name="ndt_scan_matching" type="ndt_scan_matching" output="screen">
-		<param name="pc_range" type="double" value="15.0"/>
-		<param name="leafsize_source" type="double" value="0.1"/>
-		<param name="leafsize_target" type="double" value="0.1"/>
+		<param name="pc_range" type="double" value="20.0"/>
+		<param name="leafsize_source" type="double" value="0.2"/>
+		<param name="leafsize_target" type="double" value="0.2"/>
 		<param name="trans_epsilon" type="double" value="1e-3"/>
 		<param name="stepsize" type="double" value="0.1"/>
-		<param name="resolution" type="double" value="0.2"/>
+		<param name="resolution" type="double" value="0.9"/>
 		<param name="max_iterations" type="int" value="30"/>
 	</node>
 
