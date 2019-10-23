@@ -152,8 +152,7 @@ bool NDTScanMatching::Transformation(void)
 	PassThroughFilter(pc_now, pc_now_filtered, range_local);
 	/*downsampling*/
 	std::cout << "before: pc_map_filtered->points.size() = " << pc_map_filtered->points.size() << std::endl;
-	ApproximateDownsampling(pc_map_filtered, leafsize_target);
-	ApproximateDownsampling(pc_now_filtered, leafsize_source);
+	Downsampling(pc_now_filtered, leafsize_source);
 	std::cout << "downsampling clock [s] = " << ros::Time::now().toSec() - time_start << std::endl;
 	/*drop out*/
 	if(pc_now_filtered->points.empty() || pc_map_filtered->points.empty())	return false;
@@ -203,7 +202,7 @@ bool NDTScanMatching::Transformation(void)
 	/*register*/
 	*pc_map += *pc_trans;
 	std::cout << "before: pc_map->points.size() = " << pc_map->points.size() << std::endl;
-	ApproximateDownsampling(pc_map, leafsize_target);
+	Downsampling(pc_map, leafsize_target);
 	std::cout << "after: pc_map->points.size() = " << pc_map->points.size() << std::endl;
 	std::cout << "transformation clock [s] = " << ros::Time::now().toSec() - time_start << std::endl;
 
@@ -225,10 +224,12 @@ void NDTScanMatching::PassThroughFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr pc_i
 
 void NDTScanMatching::Downsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc, double leafsize)
 {
+	pcl::PointCloud<pcl::PointXYZ>::Ptr tmp (new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::VoxelGrid<pcl::PointXYZ> vg;
 	vg.setInputCloud(pc);
 	vg.setLeafSize((float)leafsize, (float)leafsize, (float)leafsize);
-	vg.filter(*pc);
+	vg.filter(*tmp);
+	*pc = *tmp;
 }
 
 void NDTScanMatching::ApproximateDownsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc, double leafsize)
@@ -237,8 +238,7 @@ void NDTScanMatching::ApproximateDownsampling(pcl::PointCloud<pcl::PointXYZ>::Pt
 	avg.setInputCloud(pc);
 	avg.setLeafSize((float)leafsize, (float)leafsize, (float)leafsize);
 	avg.filter(*pc);
-	// avg.applyFilter(*pc);
-	std::cout << "avg.getDownsampleAllData() = " << avg.getDownsampleAllData() << std::endl;
+	/* std::cout << "avg.getDownsampleAllData() = " << avg.getDownsampleAllData() << std::endl; */
 }
 
 void NDTScanMatching::Visualization(void)
