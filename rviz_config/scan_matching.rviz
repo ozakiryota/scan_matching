@@ -153,8 +153,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 1.82090425
-        Min Value: -3.07249594
+        Max Value: 2.78329253
+        Min Value: -3.25538373
         Value: true
       Axis: Z
       Channel Name: intensity
@@ -233,7 +233,7 @@ Visualization Manager:
       Pitch: 1.56979632
       Target Frame: velodyne
       Value: ThirdPersonFollower (rviz)
-      Yaw: 2.25159264
+      Yaw: -3.14159274
     Saved: ~
 Window Geometry:
   Displays:
