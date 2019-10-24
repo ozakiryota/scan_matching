@@ -6,11 +6,8 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/registration/ndt.h>
 #include <pcl/filters/passthrough.h>
-#include <pcl/filters/approximate_voxel_grid.h>
-/* #include <tf/tf.h> */
-/* #include <pcl/common/transforms.h> */
-/* #include <eigen_conversions/eigen_msg.h> */
-/* #include <tf/transform_broadcaster.h> */
+#include <pcl/filters/voxel_grid.h>
+/* #include <pcl/filters/approximate_voxel_grid.h> */
 #include <pcl/visualization/cloud_viewer.h>
 
 class NDTScanMatching{
@@ -54,7 +51,7 @@ class NDTScanMatching{
 		bool Transformation(void);
 		void PassThroughFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr pc_in, pcl::PointCloud<pcl::PointXYZ>::Ptr pc_out, std::vector<double> range);
 		void Downsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc, double leafsize);
-		void ApproximateDownsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc, double leafsize);
+		/* void ApproximateDownsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc, double leafsize); */
 		void Visualization(void);
 		void Publication(void);
 		Eigen::Quaternionf QuatMsgToEigen(geometry_msgs::Quaternion q_msg);
@@ -232,14 +229,14 @@ void NDTScanMatching::Downsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc, doubl
 	*pc = *tmp;
 }
 
-void NDTScanMatching::ApproximateDownsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc, double leafsize)
-{
-	pcl::ApproximateVoxelGrid<pcl::PointXYZ> avg;
-	avg.setInputCloud(pc);
-	avg.setLeafSize((float)leafsize, (float)leafsize, (float)leafsize);
-	avg.filter(*pc);
-	/* std::cout << "avg.getDownsampleAllData() = " << avg.getDownsampleAllData() << std::endl; */
-}
+/* void NDTScanMatching::ApproximateDownsampling(pcl::PointCloud<pcl::PointXYZ>::Ptr pc, double leafsize) */
+/* { */
+/* 	pcl::ApproximateVoxelGrid<pcl::PointXYZ> avg; */
+/* 	avg.setInputCloud(pc); */
+/* 	avg.setLeafSize((float)leafsize, (float)leafsize, (float)leafsize); */
+/* 	avg.filter(*pc); */
+/* 	#<{(| std::cout << "avg.getDownsampleAllData() = " << avg.getDownsampleAllData() << std::endl; |)}># */
+/* } */
 
 void NDTScanMatching::Visualization(void)
 {
