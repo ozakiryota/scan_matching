@@ -25,9 +25,9 @@
 	<!-- main -->
 	<node pkg="scan_matching" name="scan_matching_ekf" type="scan_matching_ekf" output="screen">
 		<remap from="/odom" to="/tinypower/odom"/>
-		<param name="sigma_imu" type="double" value="1e-4"/>
-		<param name="sigma_odom" type="double" value="1e-4"/>
-		<param name="sigma_ndt" type="double" value="1e-1"/>
+		<param name="sigma_imu" type="double" value="1e-5"/>
+		<param name="sigma_odom" type="double" value="1e-5"/>
+		<param name="sigma_ndt" type="double" value="1e+1"/>
 	</node>
 	<node pkg="scan_matching" name="ndt_scan_matching" type="ndt_scan_matching" output="screen">
 		<param name="pc_range" type="double" value="20.0"/>
