@@ -175,6 +175,12 @@ bool NDTScanMatching::Transformation(void)
 	std::cout << "init_translation = (" << init_translation.x() << ", " << init_translation.y() << ", " << init_translation.z() << ")" << std::endl; 
 	std::cout << "init_rotation : (" << init_rotation.axis()(0) << ", " << init_rotation.axis()(1) << ", " << init_rotation.axis()(2) << "), " << init_rotation.angle() << " [rad]" << std::endl; 
 	Eigen::Matrix4f init_guess = (init_translation*init_rotation).matrix();
+	/*drop out*/
+	if(pc_now_filtered->points.size() > pc_map_filtered->points.size()){
+		pcl::transformPointCloud (*pc_now_filtered, *pc_now_filtered, init_guess);
+		*pc_map += *pc_now_filtered;
+		return false;
+	}
 	/*align*/
 	std::cout << "aligning ..." << std::endl; 
 	ndt.align(*pc_trans, init_guess);
