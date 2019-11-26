@@ -37,6 +37,8 @@ class ScanMatchingEKF{
 		ros::Time time_odom_now;
 		ros::Time time_odom_last;
 		/*parameters*/
+		std::string child_frame_name;
+		std::string parent_frame_name;
 		double sigma_imu;
 		double sigma_odom;
 		double sigma_ndt;
@@ -70,6 +72,10 @@ ScanMatchingEKF::ScanMatchingEKF()
 	const double initial_sigma = 1.0e-100;
 	P = initial_sigma*Eigen::MatrixXd::Identity(size_robot_state, size_robot_state);
 	/*parameters*/
+	nhPrivate.param("child_frame_name", child_frame_name, std::string("/velodyne"));
+	std::cout << "child_frame_name = " << child_frame_name << std::endl;
+	nhPrivate.param("parent_frame_name", parent_frame_name, std::string("/odom"));
+	std::cout << "parent_frame_name = " << parent_frame_name << std::endl;
 	nhPrivate.param("sigma_imu", sigma_imu, 1e-5);
 	std::cout << "sigma_imu = " << sigma_imu << std::endl;
 	nhPrivate.param("sigma_odom", sigma_odom, 1e-5);
@@ -112,9 +118,9 @@ void ScanMatchingEKF::PredictionIMU(sensor_msgs::Imu imu, double dt)
 {
 	/* std::cout << "Prediction IMU" << std::endl; */
 
-	double x = X(0);
-	double y = X(1);
-	double z = X(2);
+	/* double x = X(0); */
+	/* double y = X(1); */
+	/* double z = X(2); */
 	double r_ = X(3);
 	double p_ = X(4);
 	double y_ = X(5);
@@ -196,9 +202,9 @@ void ScanMatchingEKF::PredictionOdom(nav_msgs::Odometry odom, double dt)
 {
 	/* std::cout << "Prediction Odom" << std::endl; */
 
-	double x = X(0);
-	double y = X(1);
-	double z = X(2);
+	/* double x = X(0); */
+	/* double y = X(1); */
+	/* double z = X(2); */
 	double r_ = X(3);
 	double p_ = X(4);
 	double y_ = X(5);
@@ -289,7 +295,7 @@ void ScanMatchingEKF::Publication(void)
 			exit(1);
 		}
 	}
-	for(size_t i=0;i<X.size();i++){	//test
+	for(int i=0;i<X.size();i++){	//test
 		if(std::isnan(X(i))){
 			std::cout << "NAN error" << std::endl;
 			std::cout << "X(" << i << ") = " << X(i) << std::endl;
@@ -299,15 +305,15 @@ void ScanMatchingEKF::Publication(void)
 
 	/*pose*/
 	geometry_msgs::PoseStamped pose_pub = StateVectorToPoseStamped();
-	pose_pub.header.frame_id = "/odom";
+	pose_pub.header.frame_id = parent_frame_name;
 	pose_pub.header.stamp = time_publish;
 	pub_pose.publish(pose_pub);
 
 	/*tf broadcast*/
     geometry_msgs::TransformStamped transform;
 	transform.header.stamp = time_publish;
-	transform.header.frame_id = "/odom";
-	transform.child_frame_id = "/velodyne";
+	transform.header.frame_id = parent_frame_name;
+	transform.child_frame_id = child_frame_name;
 	transform.transform.translation.x = pose_pub.pose.position.x;
 	transform.transform.translation.y = pose_pub.pose.position.y;
 	transform.transform.translation.z = pose_pub.pose.position.z;
