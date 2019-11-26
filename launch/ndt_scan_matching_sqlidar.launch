@@ -15,14 +15,17 @@
 		<remap from="~/cloud" to="/cloud"/>
 	</node>
 	<node pkg="sq_lidar_pc_store" name="sq_lidar_pc_store" type="sq_lidar_pc_store" output="screen">
-		<param name="num_scans" type="int" value="2"/>
+		<remap from="/odom" to="/ekf/odom"/>
+		<param name="num_scans" type="int" value="10"/>
 	</node>
 	<node pkg="gyrodometry" name="initial_alignment" type="initial_alignment" output="screen">
 		<param name="initial_orientation_is_0001" type="bool" value="true"/>
 	</node>
+	<node pkg="msg_conversion" type="sq2_odometry_republish" name="sq2_odometry_republish"/>
 
 	<!-- main -->
 	<node pkg="scan_matching" name="scan_matching_ekf" type="scan_matching_ekf" output="screen">
+		<remap from="/odom" to="/odom/republished"/>
 		<param name="child_frame_name" type="string" value="/ekf/odom"/>
 		<param name="sigma_imu" type="double" value="1e-5"/>
 		<param name="sigma_odom" type="double" value="1e-5"/>
@@ -30,7 +33,7 @@
 	</node>
 	<node pkg="scan_matching" name="ndt_scan_matching" type="ndt_scan_matching" output="screen">
 		<remap from="/velodyne_points" to="/sq_lidar/stored"/>
-		<param name="pc_range" type="double" value="20.0"/>
+		<param name="pc_range" type="double" value="13.0"/>
 		<param name="leafsize_source" type="double" value="0.15"/>
 		<param name="leafsize_target" type="double" value="0.2"/>
 		<param name="trans_epsilon" type="double" value="1e-3"/>
@@ -40,7 +43,9 @@
 	</node>
 
 	<!-- comparisons -->
-	<node pkg="gyrodometry" name="gyrodometry3d" type="gyrodometry3d"/>
+	<node pkg="gyrodometry" name="gyrodometry3d" type="gyrodometry3d">
+		<!-- <param name="mode_use_linear_velocity" type="bool" value="true"/> -->
+	</node>
 
 	<!-- for visualize trajectory -->
 	<node pkg="msg_conversion" type="posestamped_to_odometry" name="posestamped_to_odometry">
@@ -50,6 +55,7 @@
 	</node>
 	<node pkg="msg_conversion" type="pc_rename_frameid" name="pc_rename_frameid">
 		<remap from="/cloud" to="/sq_lidar/stored"/>
+		<remap from="/cloud/renamed" to="/sq_lidar/stored/renamed"/>
 		<param name="frame_name" type="string" value="/ekf/odom"/>
 	</node>
 </launch>

@@ -74,6 +74,8 @@ Visualization Manager:
           Value: true
         centerlaser_:
           Value: true
+        ekf/odom:
+          Value: true
         gyrodometry:
           Value: true
         head_shell_link:
@@ -97,8 +99,6 @@ Visualization Manager:
         mobility_link:
           Value: true
         mobility_shell_link:
-          Value: true
-        ndt:
           Value: true
         odom:
           Value: true
@@ -178,11 +178,11 @@ Visualization Manager:
                 {}
               mobility_shell_link:
                 {}
+          ekf/odom:
+            {}
           gyrodometry:
             {}
           initial_orientation:
-            {}
-          ndt:
             {}
       Update Interval: 0
       Value: true
@@ -256,7 +256,7 @@ Visualization Manager:
       Size (Pixels): 1
       Size (m): 0.00999999978
       Style: Points
-      Topic: /cloud/renamed
+      Topic: /sq_lidar/stored/renamed
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -264,8 +264,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 10.1389112
-        Min Value: -6.28739548
+        Max Value: 8.17854977
+        Min Value: -0.671367168
         Value: true
       Axis: Z
       Channel Name: intensity
