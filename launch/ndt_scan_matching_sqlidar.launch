@@ -29,7 +29,7 @@
 		<param name="child_frame_name" type="string" value="/ekf/odom"/>
 		<param name="sigma_imu" type="double" value="1e-5"/>
 		<param name="sigma_odom" type="double" value="1e-5"/>
-		<param name="sigma_ndt" type="double" value="1e+1"/>
+		<param name="sigma_ndt" type="double" value="1e+2"/>
 	</node>
 	<node pkg="scan_matching" name="ndt_scan_matching" type="ndt_scan_matching" output="screen">
 		<remap from="/velodyne_points" to="/sq_lidar/stored"/>
