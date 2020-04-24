@@ -249,7 +249,6 @@ void ScanMatchingEKF::PredictionOdom(nav_msgs::Odometry odom, double dt)
 void ScanMatchingEKF::CallbackNDTPose(const geometry_msgs::PoseStampedConstPtr &msg)
 {
 	time_publish = msg->header.stamp;
-	time_odom_now = msg->header.stamp;
 	
 	ObservationNDTPose(*msg);
 	
