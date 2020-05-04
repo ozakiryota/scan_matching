@@ -193,6 +193,7 @@ bool NDTScanMatching::Transformation(void)
 		<< std::endl << " score: " << ndt.getFitnessScore () << std::endl;
 	std::cout << "ndt.getFinalTransformation()" << std::endl << ndt.getFinalTransformation() << std::endl;
 	std::cout << "init_guess" << std::endl << init_guess << std::endl;
+	std::cout << "ndt.getFinalNumIteration() = " << ndt.getFinalNumIteration() << std::endl;
 	/*input*/
 	Eigen::Matrix4f T = ndt.getFinalTransformation();
 	Eigen::Matrix3f R = T.block(0, 0, 3, 3);
