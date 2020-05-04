@@ -29,7 +29,7 @@
 		<param name="sigma_odom" type="double" value="1e-5"/>
 		<param name="sigma_ndt" type="double" value="1e+1"/>
 	</node>
-	<node pkg="scan_matching" name="ndt_scan_matching" type="ndt_scan_matching" output="screen">
+	<node pkg="scan_matching" name="scan_matching_ndt" type="scan_matching_ndt" output="screen">
 		<param name="pc_range" type="double" value="20.0"/>
 		<param name="leafsize_source" type="double" value="0.15"/>
 		<param name="leafsize_target" type="double" value="0.2"/>

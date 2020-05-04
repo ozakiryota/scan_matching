@@ -202,7 +202,7 @@ add_definitions(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-add_executable(ndt_scan_matching src/ndt_scan_matching.cpp)
-target_link_libraries(ndt_scan_matching ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_executable(scan_matching_ndt src/scan_matching_ndt.cpp)
+target_link_libraries(scan_matching_ndt ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_executable(scan_matching_ekf src/scan_matching_ekf.cpp)
 target_link_libraries(scan_matching_ekf ${catkin_LIBRARIES} ${PCL_LIBRARIES})

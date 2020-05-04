@@ -31,7 +31,7 @@
 		<param name="sigma_odom" type="double" value="1e-5"/>
 		<param name="sigma_ndt" type="double" value="1e+2"/>
 	</node>
-	<node pkg="scan_matching" name="ndt_scan_matching" type="ndt_scan_matching" output="screen">
+	<node pkg="scan_matching" name="scan_matching_ndt" type="scan_matching_ndt" output="screen">
 		<remap from="/velodyne_points" to="/sq_lidar/stored"/>
 		<param name="pc_range" type="double" value="13.0"/>
 		<param name="leafsize_source" type="double" value="0.15"/>
