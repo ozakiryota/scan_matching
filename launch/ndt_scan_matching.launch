@@ -30,6 +30,7 @@
 		<param name="sigma_ndt" type="double" value="1e+1"/>
 	</node>
 	<node pkg="scan_matching" name="scan_matching_ndt" type="scan_matching_ndt" output="screen">
+		<remap from="/cloud" to="/velodyne_points"/>
 		<param name="pc_range" type="double" value="20.0"/>
 		<param name="leafsize_source" type="double" value="0.15"/>
 		<param name="leafsize_target" type="double" value="0.2"/>

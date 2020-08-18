@@ -1,0 +1,66 @@
+<launch>
+	<!-- global rosparam -->
+	<param name="use_sim_time" value="true"/>
+
+	<!-- rosbag -->
+	<!-- <node pkg="rosbag" type="play" name="player" args="&#45;&#45;clock /home/amsl/ozaki/docker_ws/airsim_ros_wrapper/bagfiles/drone_1cam_lidar_202008130010.bag"/> -->
+	<node pkg="rosbag" type="play" name="player" args="--clock /home/amsl/ozaki/docker_ws/airsim_ros_wrapper/bagfiles/drone_1cam_lidar_202008131352.bag"/>
+
+	<!-- rviz -->
+	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find scan_matching)/rviz_config/scan_matching_airsim.rviz"/>
+
+	<!-- NED to NEU -->
+	<node pkg="msg_conversion" name="pc_ned_to_neu" type="pc_ned_to_neu">
+		<remap from="/cloud" to="/airsim_node/drone/lidar/LidarCustom"/>
+	</node>
+	<node pkg="pc_store" name="lower_pc_hz" type="lower_pc_hz">
+		<remap from="/cloud" to="/cloud/neu"/>
+		<param name="target_hz" type="double" value="20"/>
+	</node>
+	<node pkg="msg_conversion" type="ned_to_neu" name="ned_to_neu">
+		<remap from="/odom" to="/airsim_node/drone/odom_local_ned"/>
+		<remap from="/imu/data" to="/airsim_node/drone/imu/Imu"/>
+	</node>
+
+	<!-- MAIN -->
+	<node pkg="scan_matching" name="scan_matching_ekf" type="scan_matching_ekf" output="screen">
+		<remap from="/odom" to="/odom/neu"/>
+		<remap from="/imu/data" to="/imu/data/neu"/>
+		<param name="sigma_imu" type="double" value="1e-5"/>
+		<!-- <param name="sigma_odom" type="double" value="1e&#45;5"/> -->
+		<param name="sigma_ndt" type="double" value="1e+1"/>
+	</node>
+	<node pkg="scan_matching" name="scan_matching_ndt" type="scan_matching_ndt" output="screen">
+		<!-- <remap from="/cloud" to="/velodyne_points"/> -->
+		<remap from="/cloud" to="/cloud/lower_hz"/>
+		<param name="pc_range" type="double" value="20.0"/>
+		<param name="leafsize_source" type="double" value="0.5"/>
+		<param name="leafsize_target" type="double" value="0.5"/>
+		<param name="trans_epsilon" type="double" value="1e-3"/>
+		<param name="stepsize" type="double" value="0.1"/>
+		<param name="resolution" type="double" value="1.0"/>
+		<param name="max_iterations" type="int" value="30"/>
+	</node>
+
+	<!-- for visualize trajectory -->
+	<node pkg="msg_conversion" type="posestamped_to_odometry" name="posestamped_to_odometry">
+		<remap from="/pose" to="/ekf/pose"/>
+		<remap from="/odom/from_posestamped" to="/ekf/odom"/>
+		<param name="child_frame_id" type="string" value="/ekf/odom"/>
+	</node>
+
+	<!-- validation -->
+	<!-- <node pkg="msg_conversion" name="odometry_to_rpy" type="odometry_to_rpy"> -->
+	<!-- 	<remap from="/odom" to="/odom/neu"/> -->
+	<!-- 	<remap from="/rpy" to="/gt/rpy"/> -->
+	<!-- </node> -->
+	<!-- <node pkg="msg_conversion" name="quatstamped_to_rpy" type="quatstamped_to_rpy"> -->
+	<!-- 	<remap from="/quat" to="/ekf/quat_rpy"/> -->
+	<!-- 	<remap from="/rpy" to="/ekf/rpy"/> -->
+	<!-- </node> -->
+	<!-- <param name="erase_old_data" type="bool" value="False"/> -->
+	<!-- <node pkg="msg_printer" name="compare_rp" type="compare_rp.py"> -->
+	<!-- 	<remap from="/truth/rpy" to="/gt/rpy"/> -->
+	<!-- 	<remap from="/estimation/rpy" to="/ekf/rpy"/> -->
+	<!-- </node> -->
+</launch>

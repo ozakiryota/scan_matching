@@ -61,7 +61,7 @@ class NDTScanMatching{
 NDTScanMatching::NDTScanMatching()
 	:nhPrivate("~")
 {
-	sub_pc = nh.subscribe("/velodyne_points", 1, &NDTScanMatching::CallbackPC, this);
+	sub_pc = nh.subscribe("/cloud", 1, &NDTScanMatching::CallbackPC, this);
 	sub_pose = nh.subscribe("/ekf/pose", 1, &NDTScanMatching::CallbackPose, this);
 	pub_pose = nh.advertise<geometry_msgs::PoseStamped>("/ndt/pose", 1);
 	pub_pc = nh.advertise<sensor_msgs::PointCloud2>("/mapped_points", 1);
