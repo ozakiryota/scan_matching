@@ -24,22 +24,20 @@
 
 	<!-- MAIN -->
 	<node pkg="scan_matching" name="scan_matching_ekf" type="scan_matching_ekf" output="screen">
-		<remap from="/odom" to="/odom/neu"/>
 		<remap from="/imu/data" to="/imu/data/neu"/>
+		<param name="child_frame_name" type="string" value="/drone"/>
 		<param name="sigma_imu" type="double" value="1e-5"/>
-		<!-- <param name="sigma_odom" type="double" value="1e&#45;5"/> -->
-		<param name="sigma_ndt" type="double" value="1e+1"/>
+		<param name="sigma_ndt" type="double" value="1e+2"/>
 	</node>
 	<node pkg="scan_matching" name="scan_matching_ndt" type="scan_matching_ndt" output="screen">
-		<!-- <remap from="/cloud" to="/velodyne_points"/> -->
 		<remap from="/cloud" to="/cloud/lower_hz"/>
-		<param name="pc_range" type="double" value="20.0"/>
-		<param name="leafsize_source" type="double" value="0.5"/>
-		<param name="leafsize_target" type="double" value="0.5"/>
+		<param name="pc_range" type="double" value="50.0"/>
+		<param name="leafsize_source" type="double" value="1.0"/>
+		<param name="leafsize_target" type="double" value="1.0"/>
 		<param name="trans_epsilon" type="double" value="1e-3"/>
 		<param name="stepsize" type="double" value="0.1"/>
-		<param name="resolution" type="double" value="1.0"/>
-		<param name="max_iterations" type="int" value="30"/>
+		<param name="resolution" type="double" value="5.0"/>
+		<param name="max_iterations" type="int" value="10"/>
 	</node>
 
 	<!-- for visualize trajectory -->

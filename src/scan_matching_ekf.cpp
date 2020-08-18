@@ -72,7 +72,7 @@ ScanMatchingEKF::ScanMatchingEKF()
 	const double initial_sigma = 1.0e-100;
 	P = initial_sigma*Eigen::MatrixXd::Identity(size_robot_state, size_robot_state);
 	/*parameters*/
-	nhPrivate.param("child_frame_name", child_frame_name, std::string("/velodyne"));
+	nhPrivate.param("child_frame_name", child_frame_name, std::string("/lidar"));
 	std::cout << "child_frame_name = " << child_frame_name << std::endl;
 	nhPrivate.param("parent_frame_name", parent_frame_name, std::string("/odom"));
 	std::cout << "parent_frame_name = " << parent_frame_name << std::endl;
