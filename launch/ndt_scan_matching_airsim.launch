@@ -36,9 +36,9 @@
 	</node>
 	<node pkg="scan_matching" name="scan_matching_ndt" type="scan_matching_ndt" output="screen">
 		<remap from="/cloud" to="/cloud/lower_hz"/>
-		<param name="pc_range" type="double" value="50.0"/>
-		<param name="leafsize_source" type="double" value="1.0"/>
-		<param name="leafsize_target" type="double" value="1.0"/>
+		<param name="pc_range" type="double" value="100.0"/>
+		<param name="leafsize_source" type="double" value="2.0"/>
+		<param name="leafsize_target" type="double" value="2.0"/>
 		<param name="trans_epsilon" type="double" value="1e-3"/>
 		<param name="stepsize" type="double" value="0.1"/>
 		<param name="resolution" type="double" value="5.0"/>
