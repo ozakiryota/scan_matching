@@ -34,16 +34,16 @@
 		<param name="sigma_imu" type="double" value="1e-5"/>
 		<param name="sigma_ndt" type="double" value="1e+2"/>
 	</node>
-	<node pkg="scan_matching" name="scan_matching_ndt" type="scan_matching_ndt" output="screen">
-		<remap from="/cloud" to="/cloud/lower_hz"/>
-		<param name="pc_range" type="double" value="50.0"/>
-		<param name="leafsize_source" type="double" value="1.0"/>
-		<param name="leafsize_target" type="double" value="1.0"/>
-		<param name="trans_epsilon" type="double" value="1e-3"/>
-		<param name="stepsize" type="double" value="0.1"/>
-		<param name="resolution" type="double" value="5.0"/>
-		<param name="max_iterations" type="int" value="10"/>
-	</node>
+	<!-- <node pkg="scan_matching" name="scan_matching_ndt" type="scan_matching_ndt" output="screen"> -->
+	<!-- 	<remap from="/cloud" to="/cloud/lower_hz"/> -->
+	<!-- 	<param name="pc_range" type="double" value="50.0"/> -->
+	<!-- 	<param name="leafsize_source" type="double" value="1.0"/> -->
+	<!-- 	<param name="leafsize_target" type="double" value="1.0"/> -->
+	<!-- 	<param name="trans_epsilon" type="double" value="1e&#45;3"/> -->
+	<!-- 	<param name="stepsize" type="double" value="0.1"/> -->
+	<!-- 	<param name="resolution" type="double" value="5.0"/> -->
+	<!-- 	<param name="max_iterations" type="int" value="10"/> -->
+	<!-- </node> -->
 
 	<!-- for visualize trajectory -->
 	<node pkg="msg_conversion" type="posestamped_to_odometry" name="posestamped_to_odometry">
