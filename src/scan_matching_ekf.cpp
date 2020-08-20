@@ -208,7 +208,12 @@ void ScanMatchingEKF::PredictionOdom(nav_msgs::Odometry odom, double dt)
 	double r_ = X(3);
 	double p_ = X(4);
 	double y_ = X(5);
-	Eigen::Vector3d Dxyz = {odom.twist.twist.linear.x*dt, 0, 0};
+	// Eigen::Vector3d Dxyz = {odom.twist.twist.linear.x*dt, 0, 0};
+	Eigen::Vector3d Dxyz = {
+		odom.twist.twist.linear.x*dt,
+		odom.twist.twist.linear.y*dt,
+		odom.twist.twist.linear.z*dt
+	};
 
 	/*F*/
 	Eigen::VectorXd F(X.size());

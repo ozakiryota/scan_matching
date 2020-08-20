@@ -21,11 +21,16 @@
 		<remap from="/odom" to="/airsim_node/drone/odom_local_ned"/>
 		<remap from="/imu/data" to="/airsim_node/drone/imu/Imu"/>
 	</node>
+	<node pkg="msg_conversion" type="odometry_linear_global_to_local" name="odometry_linear_global_to_local">
+		<remap from="/odom" to="/odom/neu"/>
+	</node>
 
 	<!-- MAIN -->
 	<node pkg="scan_matching" name="scan_matching_ekf" type="scan_matching_ekf" output="screen">
+		<remap from="/odom" to="/odom/local_linear"/>
 		<remap from="/imu/data" to="/imu/data/neu"/>
 		<param name="child_frame_name" type="string" value="/drone"/>
+		<param name="sigma_odom" type="double" value="1e-5"/>
 		<param name="sigma_imu" type="double" value="1e-5"/>
 		<param name="sigma_ndt" type="double" value="1e+2"/>
 	</node>
