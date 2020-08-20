@@ -53,17 +53,17 @@
 	</node>
 
 	<!-- validation -->
-	<!-- <node pkg="msg_conversion" name="odometry_to_rpy" type="odometry_to_rpy"> -->
-	<!-- 	<remap from="/odom" to="/odom/neu"/> -->
-	<!-- 	<remap from="/rpy" to="/gt/rpy"/> -->
-	<!-- </node> -->
-	<!-- <node pkg="msg_conversion" name="quatstamped_to_rpy" type="quatstamped_to_rpy"> -->
-	<!-- 	<remap from="/quat" to="/ekf/quat_rpy"/> -->
-	<!-- 	<remap from="/rpy" to="/ekf/rpy"/> -->
-	<!-- </node> -->
-	<!-- <param name="erase_old_data" type="bool" value="False"/> -->
-	<!-- <node pkg="msg_printer" name="compare_rp" type="compare_rp.py"> -->
-	<!-- 	<remap from="/truth/rpy" to="/gt/rpy"/> -->
-	<!-- 	<remap from="/estimation/rpy" to="/ekf/rpy"/> -->
-	<!-- </node> -->
+	<node pkg="msg_conversion" name="odometry_to_rpy" type="odometry_to_rpy">
+		<remap from="/odom" to="/odom/neu"/>
+		<remap from="/rpy" to="/gt/rpy"/>
+	</node>
+	<node pkg="msg_conversion" name="posestamped_to_rpy" type="posestamped_to_rpy">
+		<remap from="/pose" to="/ekf/pose"/>
+		<remap from="/rpy" to="/ekf/rpy"/>
+	</node>
+	<param name="erase_old_data" type="bool" value="False"/>
+	<node pkg="msg_printer" name="compare_rp" type="compare_rp.py">
+		<remap from="/truth/rpy" to="/gt/rpy"/>
+		<remap from="/estimation/rpy" to="/ekf/rpy"/>
+	</node>
 </launch>
