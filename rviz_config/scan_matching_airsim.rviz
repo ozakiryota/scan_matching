@@ -66,11 +66,11 @@ Visualization Manager:
           Value: true
         drone/odom_local_ned:
           Value: true
+        gyrodometry:
+          Value: true
         odom:
           Value: true
         odom/neu:
-          Value: true
-        velodyne:
           Value: true
         world_enu:
           Value: true
@@ -83,9 +83,21 @@ Visualization Manager:
       Show Names: true
       Tree:
         odom:
-          odom/neu:
+          drone:
+            camera_0_body:
+              {}
+            camera_0_optical:
+              {}
+            drone/odom_local_ned:
+              camera_0_body/static:
+                {}
+              camera_0_optical/static:
+                {}
+              drone/LidarCustom:
+                {}
+          gyrodometry:
             {}
-          velodyne:
+          odom/neu:
             {}
       Update Interval: 0
       Value: true
@@ -100,13 +112,13 @@ Visualization Manager:
       Name: Pose
       Shaft Length: 1
       Shaft Radius: 0.0500000007
-      Shape: Arrow
+      Shape: Axes
       Topic: /ekf/pose
       Unreliable: false
       Value: true
     - Angle Tolerance: 1
       Class: rviz/Odometry
-      Color: 255; 25; 0
+      Color: 255; 0; 255
       Enabled: true
       Keep: 10000
       Length: 5
@@ -116,13 +128,23 @@ Visualization Manager:
       Value: true
     - Angle Tolerance: 1
       Class: rviz/Odometry
-      Color: 0; 255; 0
+      Color: 255; 255; 0
       Enabled: true
       Keep: 10000
       Length: 5
       Name: Odometry
       Position Tolerance: 0.5
       Topic: /ekf/odom
+      Value: true
+    - Angle Tolerance: 1
+      Class: rviz/Odometry
+      Color: 0; 255; 255
+      Enabled: true
+      Keep: 10000
+      Length: 5
+      Name: Odometry
+      Position Tolerance: 0.5
+      Topic: /gyrodometry
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
@@ -157,8 +179,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 13.1757078
-        Min Value: -14.0215111
+        Max Value: 38.7743645
+        Min Value: -26.3337078
         Value: true
       Axis: Z
       Channel Name: intensity

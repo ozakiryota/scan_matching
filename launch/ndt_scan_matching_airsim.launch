@@ -4,7 +4,7 @@
 
 	<!-- rosbag -->
 	<!-- <node pkg="rosbag" type="play" name="player" args="&#45;&#45;clock /home/amsl/ozaki/docker_ws/airsim_ros_wrapper/bagfiles/drone_1cam_lidar_202008130010.bag"/> -->
-	<node pkg="rosbag" type="play" name="player" args="--clock /home/amsl/ozaki/docker_ws/airsim_ros_wrapper/bagfiles/drone_1cam_lidar_202008131352.bag"/>
+	<node pkg="rosbag" type="play" name="player" args="--clock /home/amsl/ozaki/docker_ws/airsim_ros_wrapper/bagfiles/drone_1cam_lidar_noisedimu_202008281137.bag"/>
 
 	<!-- rviz -->
 	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find scan_matching)/rviz_config/scan_matching_airsim.rviz"/>
@@ -19,7 +19,8 @@
 	</node>
 	<node pkg="msg_conversion" type="ned_to_neu" name="ned_to_neu">
 		<remap from="/odom" to="/airsim_node/drone/odom_local_ned"/>
-		<remap from="/imu/data" to="/airsim_node/drone/imu/Imu"/>
+		<!-- <remap from="/imu/data" to="/airsim_node/drone/imu/Imu"/> -->
+		<remap from="/imu/data" to="/airsim_node/drone/imu/Imu/with_noise"/>
 	</node>
 	<node pkg="msg_conversion" type="odometry_linear_global_to_local" name="odometry_linear_global_to_local">
 		<remap from="/odom" to="/odom/neu"/>
@@ -43,6 +44,14 @@
 		<param name="stepsize" type="double" value="0.1"/>
 		<param name="resolution" type="double" value="5.0"/>
 		<param name="max_iterations" type="int" value="10"/>
+		<param name="erase_out_of_range_pc" type="bool" value="false"/>
+	</node>
+
+	<!-- comparative approaches -->
+	<node pkg="gyrodometry" name="gyrodometry3d" type="gyrodometry3d">
+		<remap from="/odom" to="/odom/neu"/>
+		<remap from="/imu/data" to="/imu/data/neu"/>
+		<param name="wait_inipose" type="bool" value="false"/>
 	</node>
 
 	<!-- for visualize trajectory -->
@@ -52,7 +61,7 @@
 		<param name="child_frame_id" type="string" value="/ekf/odom"/>
 	</node>
 
-	<!-- validation -->
+	<!-- msg conversion -->
 	<node pkg="msg_conversion" name="odometry_to_rpy" type="odometry_to_rpy">
 		<remap from="/odom" to="/odom/neu"/>
 		<remap from="/rpy" to="/gt/rpy"/>
@@ -61,9 +70,23 @@
 		<remap from="/pose" to="/ekf/pose"/>
 		<remap from="/rpy" to="/ekf/rpy"/>
 	</node>
+	<node pkg="msg_conversion" type="odometry_to_rpy" name="gyrodometry_to_rpy">
+		<remap from="/odom" to="/gyrodometry"/>
+		<remap from="/rpy" to="/gyrodometry/rpy"/>
+	</node>
+
+	<!-- validation -->
 	<param name="erase_old_data" type="bool" value="False"/>
-	<node pkg="msg_printer" name="compare_rp" type="compare_rp.py">
+	<!-- <node pkg="msg_printer" name="compare_rp" type="compare_rp.py"> -->
+	<!-- 	<remap from="/truth/rpy" to="/gt/rpy"/> -->
+	<!-- 	<remap from="/estimation/rpy" to="/ekf/rpy"/> -->
+	<!-- </node> -->
+	<param name="/num_sub" type="int" value="2"/>
+	<param name="/method0" type="str" value="NDT"/>
+	<param name="/method1" type="str" value="Gyro"/>
+	<node pkg="msg_printer" type="compare_rp_multi_methods.py" name="compare_rp_multi_methods" output="screen">
 		<remap from="/truth/rpy" to="/gt/rpy"/>
-		<remap from="/estimation/rpy" to="/ekf/rpy"/>
+		<remap from="/estimation0/rpy" to="/ekf/rpy"/>
+		<remap from="/estimation1/rpy" to="/gyrodometry/rpy"/>
 	</node>
 </launch>
