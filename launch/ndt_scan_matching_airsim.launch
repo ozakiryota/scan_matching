@@ -34,8 +34,8 @@
 		<param name="child_frame_name" type="string" value="/drone"/>
 		<!-- <param name="sigma_odom" type="double" value="1e&#45;5"/> -->
 		<!-- <param name="sigma_imu" type="double" value="1e&#45;5"/> -->
-		<!-- <param name="sigma_ndt" type="double" value="1e+2"/> -->
-		<param name="sigma_ndt" type="double" value="2e+2"/>
+		<param name="sigma_ndt" type="double" value="1e+2"/>
+		<!-- <param name="sigma_ndt" type="double" value="2e+2"/> -->
 	</node>
 	<node pkg="scan_matching" name="scan_matching_ndt" type="scan_matching_ndt" output="screen">
 		<remap from="/cloud" to="/cloud/lower_hz"/>
