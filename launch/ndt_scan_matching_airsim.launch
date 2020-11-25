@@ -3,9 +3,7 @@
 	<param name="use_sim_time" value="true"/>
 
 	<!-- rosbag -->
-	<!-- <node pkg="rosbag" type="play" name="player" args="&#45;&#45;clock /home/amsl/ozaki/bagfiles/airsim/Neighborhood/drone_1cam_lidar_noisedimu_202008290246.bag"/> -->
-	<node pkg="rosbag" type="play" name="player" args="--clock /home/amsl/ozaki/bagfiles/airsim/Neighborhood/drone_1cam_lidar_noisedimu_202009011526.bag"/>
-	<!-- <node pkg="rosbag" type="play" name="player" args="&#45;&#45;clock /home/amsl/ozaki/bagfiles/airsim/SoccerField/drone_1cam_lidar_noisedimu_202009041502.bag"/> -->
+	<node pkg="rosbag" type="play" name="player" args="--clock /home/amsl/ozaki/bagfiles/airsim/Neighborhood/drone_1cam_lidar_noisedimu_202011221752.bag"/>
 
 	<!-- rviz -->
 	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find scan_matching)/rviz_config/scan_matching_airsim.rviz"/>
@@ -14,10 +12,10 @@
 	<node pkg="msg_conversion" name="pc_ned_to_neu" type="pc_ned_to_neu">
 		<remap from="/cloud" to="/airsim_node/drone/lidar/LidarCustom"/>
 	</node>
-	<node pkg="pc_store" name="lower_pc_hz" type="lower_pc_hz">
-		<remap from="/cloud" to="/cloud/neu"/>
-		<param name="target_hz" type="double" value="20"/>
-	</node>
+	<!-- <node pkg="pc_store" name="lower_pc_hz" type="lower_pc_hz"> -->
+	<!-- 	<remap from="/cloud" to="/cloud/neu"/> -->
+	<!-- 	<param name="target_hz" type="double" value="20"/> -->
+	<!-- </node> -->
 	<node pkg="msg_conversion" type="ned_to_neu" name="ned_to_neu">
 		<remap from="/odom" to="/airsim_node/drone/odom_local_ned"/>
 		<!-- <remap from="/imu/data" to="/airsim_node/drone/imu/Imu"/> -->
@@ -38,7 +36,8 @@
 		<!-- <param name="sigma_ndt" type="double" value="2e+2"/> -->
 	</node>
 	<node pkg="scan_matching" name="scan_matching_ndt" type="scan_matching_ndt" output="screen">
-		<remap from="/cloud" to="/cloud/lower_hz"/>
+		<remap from="/cloud" to="/cloud/neu"/>
+		<!-- <remap from="/cloud" to="/cloud/lower_hz"/> -->
 		<param name="pc_range" type="double" value="100.0"/>
 		<param name="leafsize_source" type="double" value="2.0"/>
 		<param name="leafsize_target" type="double" value="2.0"/>
@@ -82,7 +81,7 @@
 	<param name="/num_sub" type="int" value="1"/>
 	<param name="/method0" type="str" value="Gyro+NDT"/>
 	<!-- <param name="/method1" type="str" value="Gyro"/> -->
-	<node pkg="msg_printer" type="compare_rp_multi_methods.py" name="compare_rp_multi_methods" output="screen">
+	<node pkg="msg_printer" type="compare_rp_with_gt.py" name="compare_rp_with_gt" output="screen">
 		<remap from="/truth/rpy" to="/gt/rpy"/>
 		<remap from="/estimation0/rpy" to="/ekf/rpy"/>
 		<!-- <remap from="/estimation1/rpy" to="/gyrodometry/rpy"/> -->
